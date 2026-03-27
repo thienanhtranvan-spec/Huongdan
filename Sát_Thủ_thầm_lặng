@@ -1,0 +1,515 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local authenticated = false
+local KEY = "EspOp"
+
+local espEnabled = {
+    nameHp = true,
+    outline = true
+}
+
+local espGui = {}
+local outlineInstances = {}
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ESP_Menu"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Size = UDim2.new(0, 280, 0, 200)
+KeyFrame.Position = UDim2.new(0.5, -140, 0.5, -100)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+KeyFrame.BackgroundTransparency = 0.08
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Parent = ScreenGui
+
+local KeyCorner = Instance.new("UICorner")
+KeyCorner.CornerRadius = UDim.new(0, 12)
+KeyCorner.Parent = KeyFrame
+
+local KeyStroke = Instance.new("UIStroke")
+KeyStroke.Color = Color3.fromRGB(255, 70, 100)
+KeyStroke.Thickness = 1.5
+KeyStroke.Parent = KeyFrame
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Size = UDim2.new(1, 0, 0, 40)
+KeyTitle.Position = UDim2.new(0, 0, 0, 15)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Text = "🔐 XÁC THỰC ESP"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 70, 100)
+KeyTitle.TextSize = 18
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.Parent = KeyFrame
+
+local KeySub = Instance.new("TextLabel")
+KeySub.Size = UDim2.new(1, 0, 0, 25)
+KeySub.Position = UDim2.new(0, 0, 0, 55)
+KeySub.BackgroundTransparency = 1
+KeySub.Text = "NHẬP KEY ĐỂ KÍCH HOẠT"
+KeySub.TextColor3 = Color3.fromRGB(150, 150, 170)
+KeySub.TextSize = 11
+KeySub.Font = Enum.Font.Gotham
+KeySub.Parent = KeyFrame
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(0, 220, 0, 35)
+KeyBox.Position = UDim2.new(0.5, -110, 0, 85)
+KeyBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+KeyBox.Text = ""
+KeyBox.PlaceholderText = "NHẬP KEY..."
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.TextSize = 14
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.Parent = KeyFrame
+
+local KeyBoxCorner = Instance.new("UICorner")
+KeyBoxCorner.CornerRadius = UDim.new(0, 8)
+KeyBoxCorner.Parent = KeyBox
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0, 220, 0, 35)
+SubmitBtn.Position = UDim2.new(0.5, -110, 0, 130)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 100)
+SubmitBtn.Text = "KÍCH HOẠT"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.TextSize = 14
+SubmitBtn.Font = Enum.Font.GothamBold
+SubmitBtn.Parent = KeyFrame
+
+local SubmitCorner = Instance.new("UICorner")
+SubmitCorner.CornerRadius = UDim.new(0, 8)
+SubmitCorner.Parent = SubmitBtn
+
+local ErrorMsg = Instance.new("TextLabel")
+ErrorMsg.Size = UDim2.new(1, 0, 0, 20)
+ErrorMsg.Position = UDim2.new(0, 0, 0, 170)
+ErrorMsg.BackgroundTransparency = 1
+ErrorMsg.Text = ""
+ErrorMsg.TextColor3 = Color3.fromRGB(255, 50, 80)
+ErrorMsg.TextSize = 10
+ErrorMsg.Font = Enum.Font.Gotham
+ErrorMsg.Visible = false
+ErrorMsg.Parent = KeyFrame
+
+local MenuFrame = Instance.new("Frame")
+MenuFrame.Size = UDim2.new(0, 160, 0, 110)
+MenuFrame.Position = UDim2.new(0, 20, 0, 100)
+MenuFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MenuFrame.BackgroundTransparency = 0.1
+MenuFrame.BorderSizePixel = 0
+MenuFrame.Parent = ScreenGui
+MenuFrame.Visible = false
+
+local MenuCorner = Instance.new("UICorner")
+MenuCorner.CornerRadius = UDim.new(0, 10)
+MenuCorner.Parent = MenuFrame
+
+local MenuStroke = Instance.new("UIStroke")
+MenuStroke.Color = Color3.fromRGB(255, 70, 100)
+MenuStroke.Thickness = 1.5
+MenuStroke.Parent = MenuFrame
+
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 28)
+TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+TitleBar.BackgroundTransparency = 0
+TitleBar.Parent = MenuFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleBar
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, -30, 1, 0)
+TitleText.Position = UDim2.new(0, 8, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "🔴 ESP MENU"
+TitleText.TextColor3 = Color3.fromRGB(255, 70, 100)
+TitleText.TextSize = 12
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Font = Enum.Font.GothamBold
+TitleText.Parent = TitleBar
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 22, 0, 22)
+CloseBtn.Position = UDim2.new(1, -25, 0, 3)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 11
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 5)
+CloseCorner.Parent = CloseBtn
+
+local NameHpBtn = Instance.new("TextButton")
+NameHpBtn.Size = UDim2.new(0, 140, 0, 30)
+NameHpBtn.Position = UDim2.new(0.5, -70, 0, 38)
+NameHpBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 100)
+NameHpBtn.Text = "✓ TÊN + MÁU"
+NameHpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameHpBtn.TextSize = 11
+NameHpBtn.Font = Enum.Font.GothamSemibold
+NameHpBtn.Parent = MenuFrame
+
+local NameHpCorner = Instance.new("UICorner")
+NameHpCorner.CornerRadius = UDim.new(0, 6)
+NameHpCorner.Parent = NameHpBtn
+
+local OutlineBtn = Instance.new("TextButton")
+OutlineBtn.Size = UDim2.new(0, 140, 0, 30)
+OutlineBtn.Position = UDim2.new(0.5, -70, 0, 73)
+OutlineBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 100)
+OutlineBtn.Text = "✓ VIỀN AVATAR"
+OutlineBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+OutlineBtn.TextSize = 11
+OutlineBtn.Font = Enum.Font.GothamSemibold
+OutlineBtn.Parent = MenuFrame
+
+local OutlineCorner = Instance.new("UICorner")
+OutlineCorner.CornerRadius = UDim.new(0, 6)
+OutlineCorner.Parent = OutlineBtn
+
+local function updateNameHpButton()
+    if espEnabled.nameHp then
+        NameHpBtn.Text = "✓ TÊN + MÁU"
+        NameHpBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 100)
+    else
+        NameHpBtn.Text = "✗ TÊN + MÁU"
+        NameHpBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    end
+end
+
+local function updateOutlineButton()
+    if espEnabled.outline then
+        OutlineBtn.Text = "✓ VIỀN AVATAR"
+        OutlineBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 100)
+    else
+        OutlineBtn.Text = "✗ VIỀN AVATAR"
+        OutlineBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    end
+end
+
+local function createNameHp(player)
+    if player == LocalPlayer then return end
+    
+    local gui = Instance.new("BillboardGui")
+    gui.Name = "ESP_" .. player.Name
+    gui.Size = UDim2.new(0, 150, 0, 40)
+    gui.StudsOffset = Vector3.new(0, 2.5, 0)
+    gui.AlwaysOnTop = true
+    gui.Parent = player.Character and player.Character:FindFirstChild("Head") or nil
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 0, 18)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.fromRGB(0, 150, 255)
+    nameLabel.TextSize = 12
+    nameLabel.TextStrokeTransparency = 0.3
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = gui
+    
+    local hpBarBg = Instance.new("Frame")
+    hpBarBg.Size = UDim2.new(1, -20, 0, 4)
+    hpBarBg.Position = UDim2.new(0, 10, 0, 20)
+    hpBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    hpBarBg.BorderSizePixel = 0
+    hpBarBg.Parent = gui
+    
+    local hpBarCorner = Instance.new("UICorner")
+    hpBarCorner.CornerRadius = UDim.new(0, 2)
+    hpBarCorner.Parent = hpBarBg
+    
+    local hpBar = Instance.new("Frame")
+    hpBar.Size = UDim2.new(1, 0, 1, 0)
+    hpBar.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+    hpBar.BorderSizePixel = 0
+    hpBar.Parent = hpBarBg
+    
+    local hpBarFillCorner = Instance.new("UICorner")
+    hpBarFillCorner.CornerRadius = UDim.new(0, 2)
+    hpBarFillCorner.Parent = hpBar
+    
+    local hpText = Instance.new("TextLabel")
+    hpText.Size = UDim2.new(1, 0, 0, 12)
+    hpText.Position = UDim2.new(0, 0, 0, 25)
+    hpText.BackgroundTransparency = 1
+    hpText.Text = "100"
+    hpText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    hpText.TextSize = 9
+    hpText.Font = Enum.Font.Gotham
+    hpText.Parent = gui
+    
+    espGui[player] = {gui = gui, hpBar = hpBar, hpText = hpText}
+    
+    local function updateHp()
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid then
+                local hp = humanoid.Health
+                local maxHp = humanoid.MaxHealth
+                local percent = math.clamp(hp / maxHp, 0, 1)
+                hpBar.Size = UDim2.new(percent, 0, 1, 0)
+                hpText.Text = math.floor(hp) .. "/" .. math.floor(maxHp)
+                
+                if percent > 0.6 then
+                    hpBar.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+                elseif percent > 0.3 then
+                    hpBar.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+                else
+                    hpBar.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+                end
+            end
+        end
+    end
+    
+    updateHp()
+    player.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        gui.Parent = player.Character and player.Character:FindFirstChild("Head")
+        updateHp()
+    end)
+    
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not player.Character or not player.Character.Parent then
+            if gui then gui:Destroy() end
+            if connection then connection:Disconnect() end
+            return
+        end
+        updateHp()
+    end)
+end
+
+local function createOutline(player)
+    if player == LocalPlayer then return end
+    
+    local function addOutline(character)
+        if not character then return end
+        
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                if not outlineInstances[part] then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Parent = part
+                    highlight.Adornee = part
+                    highlight.FillTransparency = 1
+                    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineTransparency = 0
+                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    
+                    local glow = Instance.new("BillboardGui")
+                    glow.Size = UDim2.new(0, part.Size.X * 10, 0, part.Size.Y * 10)
+                    glow.AlwaysOnTop = true
+                    glow.LightInfluence = 0
+                    glow.Parent = part
+                    
+                    local frame = Instance.new("Frame")
+                    frame.Size = UDim2.new(1, 0, 1, 0)
+                    frame.BackgroundTransparency = 0.7
+                    frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                    frame.BorderSizePixel = 0
+                    frame.Parent = glow
+                    
+                    outlineInstances[part] = {highlight = highlight, glow = glow}
+                end
+            end
+        end
+    end
+    
+    local character = player.Character
+    if character then
+        addOutline(character)
+        
+        character.DescendantAdded:Connect(function(part)
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" and not outlineInstances[part] then
+                addOutline(part)
+            end
+        end)
+    end
+    
+    player.CharacterAdded:Connect(function(newChar)
+        task.wait(0.5)
+        for _, data in pairs(outlineInstances) do
+            if data.highlight then data.highlight:Destroy() end
+            if data.glow then data.glow:Destroy() end
+        end
+        outlineInstances = {}
+        addOutline(newChar)
+        
+        newChar.DescendantAdded:Connect(function(part)
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" and not outlineInstances[part] then
+                addOutline(part)
+            end
+        end)
+    end)
+end
+
+local function removeESP(player)
+    if espGui[player] then
+        if espGui[player].gui then espGui[player].gui:Destroy() end
+        espGui[player] = nil
+    end
+    
+    if outlineInstances then
+        for part, data in pairs(outlineInstances) do
+            if data.highlight then data.highlight:Destroy() end
+            if data.glow then data.glow:Destroy() end
+        end
+        outlineInstances = {}
+    end
+end
+
+local function toggleNameHp()
+    espEnabled.nameHp = not espEnabled.nameHp
+    updateNameHpButton()
+    
+    if espEnabled.nameHp then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and not espGui[player] then
+                createNameHp(player)
+            end
+        end
+    else
+        for _, player in pairs(Players:GetPlayers()) do
+            removeESP(player)
+            if espEnabled.outline then
+                createOutline(player)
+            end
+        end
+    end
+end
+
+local function toggleOutline()
+    espEnabled.outline = not espEnabled.outline
+    updateOutlineButton()
+    
+    if espEnabled.outline then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                createOutline(player)
+            end
+        end
+    else
+        for _, data in pairs(outlineInstances) do
+            if data.highlight then data.highlight:Destroy() end
+            if data.glow then data.glow:Destroy() end
+        end
+        outlineInstances = {}
+    end
+end
+
+NameHpBtn.MouseButton1Click:Connect(toggleNameHp)
+OutlineBtn.MouseButton1Click:Connect(toggleOutline)
+CloseBtn.MouseButton1Click:Connect(function()
+    MenuFrame.Visible = false
+end)
+
+local dragging = false
+local dragStart
+local startPos
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MenuFrame.Position
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MenuFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Insert then
+        if authenticated then
+            MenuFrame.Visible = not MenuFrame.Visible
+        end
+    end
+end)
+
+SubmitBtn.MouseButton1Click:Connect(function()
+    if KeyBox.Text == KEY then
+        authenticated = true
+        KeyFrame.Visible = false
+        MenuFrame.Visible = true
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                if espEnabled.nameHp then createNameHp(player) end
+                if espEnabled.outline then createOutline(player) end
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= LocalPlayer then
+                if espEnabled.nameHp then createNameHp(player) end
+                if espEnabled.outline then createOutline(player) end
+            end
+        end)
+        
+        Players.PlayerRemoving:Connect(function(player)
+            removeESP(player)
+        end)
+    else
+        ErrorMsg.Text = "KEY SAI!"
+        ErrorMsg.Visible = true
+        KeyBox.Text = ""
+        task.wait(2)
+        ErrorMsg.Visible = false
+    end
+end)
+
+KeyBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed and KeyBox.Text == KEY then
+        authenticated = true
+        KeyFrame.Visible = false
+        MenuFrame.Visible = true
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                if espEnabled.nameHp then createNameHp(player) end
+                if espEnabled.outline then createOutline(player) end
+            end
+        end
+        
+        Players.PlayerAdded:Connect(function(player)
+            if player ~= LocalPlayer then
+                if espEnabled.nameHp then createNameHp(player) end
+                if espEnabled.outline then createOutline(player) end
+            end
+        end)
+        
+        Players.PlayerRemoving:Connect(function(player)
+            removeESP(player)
+        end)
+    elseif enterPressed then
+        ErrorMsg.Text = "KEY SAI!"
+        ErrorMsg.Visible = true
+        KeyBox.Text = ""
+        task.wait(2)
+        ErrorMsg.Visible = false
+    end
+end)
